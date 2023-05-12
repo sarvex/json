@@ -85,15 +85,20 @@ def check_structure():
                 # check if sections are correct
                 if line.startswith('## '):
                     # before starting a new section, check if the previous one documented all overloads
-                    if current_section in documented_overloads and last_overload != 0:
-                        if len(documented_overloads[current_section]) > 0 and len(documented_overloads[current_section]) != last_overload:
-                            expected = list(range(1, last_overload+1))
-                            undocumented = [x for x in expected if x not in documented_overloads[current_section]]
-                            unexpected = [x for x in documented_overloads[current_section] if x not in expected]
-                            if len(undocumented):
-                                report('style/numbering', f'{file}:{lineno} ({current_section})', f'undocumented overloads: {", ".join([f"({x})" for x in undocumented])}')
-                            if len(unexpected):
-                                report('style/numbering', f'{file}:{lineno} ({current_section})', f'unexpected overloads: {", ".join([f"({x})" for x in unexpected])}')
+                    if (
+                        current_section in documented_overloads
+                        and last_overload != 0
+                        and len(documented_overloads[current_section]) > 0
+                        and len(documented_overloads[current_section])
+                        != last_overload
+                    ):
+                        expected = list(range(1, last_overload+1))
+                        undocumented = [x for x in expected if x not in documented_overloads[current_section]]
+                        unexpected = [x for x in documented_overloads[current_section] if x not in expected]
+                        if len(undocumented):
+                            report('style/numbering', f'{file}:{lineno} ({current_section})', f'undocumented overloads: {", ".join([f"({x})" for x in undocumented])}')
+                        if len(unexpected):
+                            report('style/numbering', f'{file}:{lineno} ({current_section})', f'unexpected overloads: {", ".join([f"({x})" for x in unexpected])}')
 
                     current_section = line.strip('## ')
                     existing_sections.append(current_section)
@@ -103,17 +108,20 @@ def check_structure():
                         if idx <= section_idx:
                             report('structure/section_order', f'{file}:{lineno+1}', f'section "{current_section}" is in an unexpected order (should be before "{expected_sections[section_idx]}")')
                         section_idx = idx
-                    else:
-                        if 'index.md' not in file:  # index.md files may have a different structure
-                            report('structure/unknown_section', f'{file}:{lineno+1}', f'section "{current_section}" is not part of the expected sections')
+                    elif 'index.md' not in file:  # index.md files may have a different structure
+                        report('structure/unknown_section', f'{file}:{lineno+1}', f'section "{current_section}" is not part of the expected sections')
 
                 # collect the numbered items of the current section to later check if they match the number of overloads
-                if last_overload != 0 and not in_initial_code_example:
-                    if len(original_line) and original_line[0].isdigit():
-                        number = int(re.findall(r"^(\d+).", original_line)[0])
-                        if current_section not in documented_overloads:
-                            documented_overloads[current_section] = []
-                        documented_overloads[current_section].append(number)
+                if (
+                    last_overload != 0
+                    and not in_initial_code_example
+                    and len(original_line)
+                    and original_line[0].isdigit()
+                ):
+                    number = int(re.findall(r"^(\d+).", original_line)[0])
+                    if current_section not in documented_overloads:
+                        documented_overloads[current_section] = []
+                    documented_overloads[current_section].append(number)
 
                 # code example
                 if line == '```cpp' and section_idx == -1:
@@ -139,8 +147,12 @@ def check_structure():
 
                 # check that non-example admonitions have titles
                 untitled_admonition = re.match(r'^(\?\?\?|!!!) ([^ ]+)$', line)
-                if untitled_admonition and untitled_admonition.group(2) != 'example':
-                    report('style/admonition_title', f'{file}:{lineno} ({current_section})', f'"{untitled_admonition.group(2)}" admonitions should have a title')
+                if untitled_admonition and untitled_admonition[2] != 'example':
+                    report(
+                        'style/admonition_title',
+                        f'{file}:{lineno} ({current_section})',
+                        f'"{untitled_admonition[2]}" admonitions should have a title',
+                    )
 
                 previous_line = line
 

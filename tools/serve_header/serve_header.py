@@ -85,8 +85,10 @@ class DirectoryEventBucket:
         with self.lock:
             # add path to the set of event_dirs if it is not a sibling of
             # a directory already in the set
-            if not any(os.path.commonpath([path, event_dir]) == event_dir
-               for (_, event_dir) in self.event_dirs):
+            if all(
+                os.path.commonpath([path, event_dir]) != event_dir
+                for (_, event_dir) in self.event_dirs
+            ):
                 self.event_dirs.add((datetime.now(), path))
                 if self.timer is None:
                     self.start_timer()
@@ -158,7 +160,7 @@ class WorkTrees(FileSystemEventHandler):
         self.observer.start()
 
     def scan(self, base_dir):
-        scan_dirs = set([base_dir])
+        scan_dirs = {base_dir}
         # recursively scan base_dir for working trees
 
         while scan_dirs:
@@ -183,7 +185,7 @@ class WorkTrees(FileSystemEventHandler):
 
         tree = WorkTree(self.root_dir, scan_dir)
         with self.tree_lock:
-            if not tree in self.trees:
+            if tree not in self.trees:
                 if tree.name == tree.rel_dir:
                     logging.info(f'adding working tree {tree.name}')
                 else:
