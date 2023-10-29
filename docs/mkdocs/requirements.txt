@@ -10,7 +10,7 @@ GitPython==3.1.40
 htmlmin==0.1.12
 httplib2==0.21.0
 idna==3.4
-importlib-metadata==5.1.0
+importlib-metadata==5.2.0
 Jinja2==3.1.2
 joblib==1.2.0
 jsmin==3.0.1
